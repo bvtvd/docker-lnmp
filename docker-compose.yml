@@ -1,0 +1,57 @@
+version: "2"
+services:
+  nginx:
+    build: nginx
+    restart: always
+    container_name: nginx
+    ports: 
+      - "80:80"
+      - "443:443"
+    links:
+      - "php56"
+    volumes:
+      - ./nginx/conf/conf.d/:/etc/nginx/conf.d/:ro
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/logs/:/var/log/nginx/:rw
+      - ./www/:/var/www/html:rw
+    environment:
+      TZ: "Asia/Shanghai"
+    networks:
+      - net-php
+  php56:
+    restart: always
+    build: ./php/php56
+    container_name: php56
+    expose: 
+      - "9000"
+    depends_on:
+      - "mysql"
+    volumes:
+      - ./php/php.ini:/etc/php/php.ini:ro
+      - ./php/php-fpm.conf:/etc/php/php-fpm.conf:ro
+      - ./php/php56/logs/:/var/log/php/:rw
+      - ./www/:/var/www/html/:rw
+    environment:
+      TZ: "Asia/Shanghai"
+    networks:
+      - net-php
+      
+  mysql:
+    build: mysql
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/conf/my.cnf:/etc/mysql/my.cnf:ro
+      - ./mysql/logs/:/var/log/mysql/:rw
+      - ./mysql/data/:/var/lib/mysql/:rw
+    environment:
+      MYSQL_USR: "docker"
+      MYSQL_PASSWORD: "docker"
+      MYDQL_DATABASE: "docker"
+      MYSQL_ROOT_PASSWORD: "root"
+      TZ: "Asia/Shanghai"
+    networks:
+      - net-php
+networks: 
+  net-php:
